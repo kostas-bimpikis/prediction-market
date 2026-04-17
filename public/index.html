@@ -104,17 +104,6 @@
         </div>
       </div>
 
-      <!-- Top 5 Leaderboard -->
-      <div id="top5-card" class="card hidden">
-        <h2>Top 5 Traders (Cumulative)</h2>
-        <table class="trades-table">
-          <thead>
-            <tr><th>#</th><th>Name</th><th>P/L</th><th>Rounds</th></tr>
-          </thead>
-          <tbody id="top5-body"></tbody>
-        </table>
-      </div>
-
       <!-- Trade History -->
       <div id="trade-history" class="card hidden">
         <h2>Your Trades</h2>
@@ -126,11 +115,27 @@
         </table>
       </div>
 
-      <!-- Price Chart (shown when allowed or after resolution) -->
-      <div id="chart-card" class="card hidden">
-        <h2>Price Chart</h2>
-        <div class="chart-container">
-          <canvas id="price-chart"></canvas>
+      <!-- Debrief row: Price Chart and Top-5 Leaderboard.
+           During trading these stack vertically (and either may be hidden).
+           After resolution they sit side-by-side on wide screens. -->
+      <div id="debrief-row" class="debrief-row">
+        <!-- Price Chart (shown when allowed or after resolution) -->
+        <div id="chart-card" class="card hidden">
+          <h2>Price Chart</h2>
+          <div class="chart-container">
+            <canvas id="price-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Top 5 Leaderboard -->
+        <div id="top5-card" class="card hidden">
+          <h2>Top 5 Traders (Cumulative)</h2>
+          <table class="trades-table">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>P/L</th><th>Rounds</th></tr>
+            </thead>
+            <tbody id="top5-body"></tbody>
+          </table>
         </div>
       </div>
 

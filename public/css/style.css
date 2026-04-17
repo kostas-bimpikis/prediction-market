@@ -74,6 +74,32 @@ body {
   max-width: 600px;
   margin: 0 auto;
   padding: 16px;
+  transition: max-width .3s ease;
+}
+
+/* When a round is resolved we widen the container slightly so the
+   chart + top-5 leaderboard can sit side-by-side on bigger screens. */
+.container.resolved-wide {
+  max-width: 980px;
+}
+
+/* Debrief row: stacks normally, becomes 2-column on wide post-round views.
+   The cards inside (chart-card and top5-card) keep their card styling. */
+.debrief-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 880px) {
+  .container.resolved-wide .debrief-row {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  /* Cards inside the row no longer need bottom margin since gap handles it */
+  .container.resolved-wide .debrief-row > .card {
+    margin-bottom: 0;
+  }
 }
 
 .card {

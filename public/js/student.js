@@ -216,6 +216,10 @@
   // Render
   // -----------------------------------------------------------------------
   function render(state) {
+    // Page container — widens when round is resolved so chart + top-5
+    // can sit side-by-side on desktops.
+    const containerEl = document.querySelector(".container");
+
     if (!state || !state.round) {
       noRound.classList.remove("hidden");
       eventHeader.classList.add("hidden");
@@ -225,7 +229,17 @@
       bannerTimer.textContent = "";
       bannerMode.classList.add("hidden");
       banner.className = "banner closed";
+      if (containerEl) containerEl.classList.remove("resolved-wide");
       return;
+    }
+
+    // Toggle wide layout post-resolution
+    if (containerEl) {
+      if (state.round.status === "resolved") {
+        containerEl.classList.add("resolved-wide");
+      } else {
+        containerEl.classList.remove("resolved-wide");
+      }
     }
 
     noRound.classList.add("hidden");
@@ -445,6 +459,10 @@
     const truthPx = r.outcome === "YES" ? 1 : 0;
     const truthLabel = r.outcome === "YES" ? "100% (YES)" : "0% (NO)";
 
+    // Build the info-grid items. For rounds without manipulation we do NOT
+    // show the "students-only price" box (it would hint that something
+    // other than student trades can move the price). The manipulator's
+    // existence is revealed only in the manipulation round.
     const items = [
       {
         label: "Bayesian benchmark",
@@ -452,27 +470,29 @@
         sub: "if all signals were pooled",
         color: "var(--blue)",
       },
-      {
+    ];
+
+    if (r.manipulationEnabled) {
+      items.push({
         label: "Students-only price",
         value: (r.studentOnlyPrice * 100).toFixed(1) + "%",
         sub: "from student trades alone",
         color: "var(--green)",
-      },
-      {
-        label: "Actual market price",
-        value: (r.finalPrice * 100).toFixed(1) + "%",
-        sub: r.manipulationEnabled
-          ? "students + manipulator combined"
-          : "what the market settled at",
-        color: "var(--gray-700)",
-      },
-      {
-        label: "True outcome",
-        value: truthLabel,
-        sub: "the realized state",
-        color: r.outcome === "YES" ? "var(--green)" : "var(--red)",
-      },
-    ];
+      });
+    }
+
+    items.push({
+      label: "Actual market price",
+      value: (r.finalPrice * 100).toFixed(1) + "%",
+      sub: "what the market settled at",
+      color: "var(--gray-700)",
+    });
+    items.push({
+      label: "True outcome",
+      value: truthLabel,
+      sub: "the realized state",
+      color: r.outcome === "YES" ? "var(--green)" : "var(--red)",
+    });
 
     grid.innerHTML = items
       .map(
@@ -491,10 +511,10 @@
       const actualDist = Math.abs(r.finalPrice - truthPx) * 100;
       const helped = actualDist < studentDist;
       note.innerHTML =
-        `<strong>Manipulator impact:</strong> ${sign}${impactPp} pp ` +
-        `(spent ${r.manipulationSpent.toFixed(0)} credits to push price ${
+        `<strong>Surprise — this round had a hidden manipulator.</strong> ` +
+        `They spent ${r.manipulationSpent.toFixed(0)} credits to push the price ${
           r.manipulationImpact >= 0 ? "up toward YES" : "down toward NO"
-        }). ` +
+        } (impact: ${sign}${impactPp} pp). ` +
         `Without manipulation, the market would have settled at ${(
           r.studentOnlyPrice * 100
         ).toFixed(1)}%. ` +
@@ -507,9 +527,12 @@
             )}pp), but manipulation pushed the visible price to ${(
               r.finalPrice * 100
             ).toFixed(1)}% (distance: ${actualDist.toFixed(1)}pp).`);
+      note.style.display = "";
     } else {
-      note.textContent =
-        "No manipulation in this round, so the students-only price equals the actual market price.";
+      // Hide the interpretive note entirely in non-manipulation rounds so
+      // students are not tipped off that manipulation is a possibility.
+      note.textContent = "";
+      note.style.display = "none";
     }
   }
 
