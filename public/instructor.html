@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructor Panel - Prediction Market</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Login Overlay -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-box">
+      <h1>Instructor Login</h1>
+      <form id="login-form">
+        <input type="password" id="login-password" placeholder="Password" autocomplete="off" required>
+        <div id="login-error" class="login-error hidden"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Banner -->
+  <div id="banner" class="banner closed">
+    <span id="banner-status">NO ROUND</span>
+    <span id="banner-mode" class="badge badge-practice hidden"></span>
+    <span id="banner-timer" class="timer"></span>
+  </div>
+
+  <div class="instructor-body">
+    <div class="instructor-grid">
+
+      <!-- Controls -->
+      <div class="card">
+        <h2>Round Controls</h2>
+
+        <label style="font-size:.85rem;color:var(--gray-600);display:block;margin-bottom:4px;">Scenario</label>
+        <select id="scenario-select" class="scenario-select">
+          <option value="">-- Select scenario --</option>
+        </select>
+        <div id="scenario-teaching" style="font-size:.8rem;color:var(--gray-500);margin-bottom:12px;min-height:40px;"></div>
+
+        <div id="mode-display" style="font-size:.85rem;color:var(--gray-600);margin-bottom:12px;">
+          Mode: <span id="mode-label" style="font-weight:600;">--</span>
+        </div>
+
+        <div class="toggle-row">
+          <div id="chart-toggle" class="toggle"></div>
+          <span>Show price chart to students during trading</span>
+        </div>
+
+        <div id="budget-input-row" class="hidden" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:.85rem;">
+          <label style="color:var(--gray-700);">Manipulation budget:</label>
+          <input type="number" id="manip-budget-input" min="1" step="10" style="width:100px;padding:6px 8px;border:1px solid var(--gray-300);border-radius:var(--radius);font-size:.85rem;text-align:center;">
+          <span style="color:var(--gray-500);font-size:.75rem;">(Applied on New Round)</span>
+        </div>
+
+        <div class="control-row">
+          <button id="btn-reset" class="btn btn-primary btn-sm">New Round</button>
+          <button id="btn-open" class="btn btn-success btn-sm" disabled>Open Trading</button>
+          <button id="btn-pause" class="btn btn-warn btn-sm hidden" disabled>Pause</button>
+          <button id="btn-resume" class="btn btn-success btn-sm hidden" disabled>Resume</button>
+          <button id="btn-resolve" class="btn btn-danger btn-sm" disabled>Resolve</button>
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <div class="card">
+        <h2>Market Overview</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">True State</div>
+            <div id="info-outcome" class="value">--</div>
+          </div>
+          <div class="info-item">
+            <div class="label">YES Price</div>
+            <div id="info-yes-price" class="value">--</div>
+          </div>
+          <div class="info-item">
+            <div class="label">NO Price</div>
+            <div id="info-no-price" class="value">--</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Bayesian Benchmark</div>
+            <div id="info-benchmark" class="value">--</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Students-only Price</div>
+            <div id="info-student-only" class="value">--</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Players</div>
+            <div id="info-players" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Trades</div>
+            <div id="info-trades" class="value">0</div>
+          </div>
+        </div>
+
+        <!-- Signal structure (always visible) -->
+        <h2 style="margin-top:16px;">Signal Structure</h2>
+        <div id="signal-structure" style="font-size:.85rem;color:var(--gray-700);background:var(--gray-50);padding:10px;border-radius:var(--radius);margin-bottom:8px;">--</div>
+
+        <!-- Signal distribution -->
+        <h2 style="margin-top:12px;">Signal Distribution</h2>
+        <div id="signal-dist" style="font-size:.85rem;color:var(--gray-500);">No players yet</div>
+      </div>
+
+      <!-- Price Chart -->
+      <div class="card full-width">
+        <h2>Price Chart</h2>
+        <div class="chart-container" style="height:300px;">
+          <canvas id="instructor-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Market Maker Accounting -->
+      <div class="card">
+        <h2>Market Maker</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">Cash Collected</div>
+            <div id="mm-cash" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">YES Shares Out</div>
+            <div id="mm-yes" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">NO Shares Out</div>
+            <div id="mm-no" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">MM P/L if YES</div>
+            <div id="mm-pl-yes" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">MM P/L if NO</div>
+            <div id="mm-pl-no" class="value">0</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Worst-Case Loss</div>
+            <div id="mm-worst" class="value">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manipulation Panel -->
+      <div id="manipulation-panel" class="card manipulation-panel hidden">
+        <h2>Manipulation Controls</h2>
+        <p id="manipulation-hint" style="font-size:.85rem;color:var(--gray-600);margin-bottom:8px;"></p>
+        <div id="manipulation-budget-display" style="font-size:.85rem;padding:8px 10px;background:var(--gray-50);border-radius:var(--radius);margin-bottom:12px;">
+          Budget: <strong id="manip-budget-total">--</strong> · Spent: <strong id="manip-budget-spent">--</strong> · Remaining: <strong id="manip-budget-remaining">--</strong>
+        </div>
+        <div class="manipulation-row">
+          <select id="manip-side" class="scenario-select" style="width:auto;margin-bottom:0;">
+            <option value="YES">Buy YES</option>
+            <option value="NO">Buy NO</option>
+          </select>
+          <div class="manipulation-presets">
+            <button class="btn btn-sm btn-danger manip-preset" data-amount="25">25</button>
+            <button class="btn btn-sm btn-danger manip-preset" data-amount="50">50</button>
+            <button class="btn btn-sm btn-danger manip-preset" data-amount="100">100</button>
+          </div>
+          <input type="number" id="manip-spend" class="trade-input" placeholder="Custom" min="1">
+          <button id="btn-manipulate" class="btn btn-danger btn-sm">Execute</button>
+        </div>
+        <h2 style="margin-top:16px;">Manipulation Trade Log</h2>
+        <table class="trades-table" id="manip-log-table">
+          <thead>
+            <tr><th>Time</th><th>Side</th><th>Spend</th><th>Shares</th><th>Price Before</th><th>Price After</th></tr>
+          </thead>
+          <tbody id="manip-log-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Round Leaderboard -->
+      <div class="card">
+        <h2>Round Leaderboard</h2>
+        <div id="round-lb-empty" style="font-size:.85rem;color:var(--gray-500);">No data yet</div>
+        <table class="leaderboard-table hidden" id="round-lb-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Signal</th><th>Tier</th><th>Value</th><th>P/L</th></tr>
+          </thead>
+          <tbody id="round-lb-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Cumulative Leaderboard -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
+          <h2 style="margin:0;">Cumulative Leaderboard</h2>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="lb-visibility-label" style="font-size:.75rem;color:var(--gray-500);">Hidden from students</span>
+            <button id="btn-toggle-leaderboard" class="btn btn-primary btn-sm">Reveal to Students</button>
+          </div>
+        </div>
+        <div id="cum-lb-empty" style="font-size:.85rem;color:var(--gray-500);">No scored rounds yet</div>
+        <table class="leaderboard-table hidden" id="cum-lb-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Cumul. P/L</th><th>Rounds</th><th>Last P/L</th></tr>
+          </thead>
+          <tbody id="cum-lb-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Danger Zone: New Session -->
+      <div class="card full-width" style="border:1px solid #fecaca; background:#fef2f2;">
+        <h2 style="color:var(--red);">Danger Zone</h2>
+        <p style="font-size:.85rem;color:var(--gray-700);margin-bottom:12px;">
+          Start a completely new classroom session. This wipes the cumulative
+          leaderboard, ends any active round, and removes all players. Use this
+          between two separate classes with different students.
+        </p>
+        <button id="btn-new-session" class="btn btn-danger btn-sm">Start New Session</button>
+      </div>
+
+    </div><!-- /instructor-grid -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+  <script src="/js/chart-manager.js"></script>
+  <script src="/js/instructor.js"></script>
+</body>
+</html>

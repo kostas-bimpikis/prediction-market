@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prediction Market</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Banner -->
+  <div id="banner" class="banner closed">
+    <span id="banner-status">WAITING</span>
+    <span id="banner-mode" class="badge badge-practice hidden"></span>
+    <span id="banner-timer" class="timer"></span>
+  </div>
+
+  <div class="container">
+
+    <!-- No round state -->
+    <div id="no-round" class="card">
+      <div class="waiting-message">Waiting for the instructor to start a round...</div>
+    </div>
+
+    <!-- Event Header -->
+    <div id="event-header" class="card hidden">
+      <div id="event-title" class="event-title"></div>
+      <div id="event-question" class="event-question"></div>
+      <div id="event-description" class="event-description"></div>
+      <div class="price-display">
+        <div class="price-label">Market YES Probability</div>
+        <div id="current-price" class="price-value">50%</div>
+        <div class="price-sublabel">Prior: 50%</div>
+      </div>
+    </div>
+
+    <!-- Join Panel -->
+    <div id="join-panel" class="card hidden">
+      <h2>Join This Round</h2>
+      <form id="join-form" class="join-form">
+        <input type="text" id="join-name" placeholder="Your name" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary">Join</button>
+      </form>
+      <div id="join-error" class="login-error hidden"></div>
+    </div>
+
+    <!-- Signal + Portfolio (after joining) -->
+    <div id="player-panel" class="hidden">
+
+      <!-- Private Signal -->
+      <div id="signal-card" class="card signal-card">
+        <h2>Your Private Signal</h2>
+        <div id="signal-direction" class="signal-direction"></div>
+        <div id="signal-label" class="signal-label"></div>
+        <div id="signal-posterior" class="signal-posterior"></div>
+        <div id="signal-confidence" class="hidden"></div>
+      </div>
+
+      <!-- Portfolio -->
+      <div class="card">
+        <h2>Your Portfolio</h2>
+        <div class="portfolio-grid">
+          <div class="portfolio-item">
+            <div class="label">Cash</div>
+            <div id="player-cash" class="value">100.00</div>
+          </div>
+          <div class="portfolio-item">
+            <div class="label">Portfolio Value</div>
+            <div id="player-portfolio" class="value">100.00</div>
+          </div>
+          <div class="portfolio-item">
+            <div class="label">YES Shares</div>
+            <div id="player-yes" class="value">0</div>
+          </div>
+          <div class="portfolio-item">
+            <div class="label">NO Shares</div>
+            <div id="player-no" class="value">0</div>
+          </div>
+        </div>
+        <div id="cumulative-row" class="cumulative-info hidden" style="margin-top:8px;">
+          <span>Cumulative P/L: <strong id="cumulative-pl">0.00</strong></span>
+          <span>Rounds scored: <strong id="cumulative-rounds">0</strong></span>
+        </div>
+      </div>
+
+      <!-- Trading -->
+      <div id="trade-panel" class="card hidden">
+        <h2>Trade</h2>
+        <div class="trade-form">
+          <input type="number" id="trade-spend" class="trade-input" placeholder="Credits" min="1" step="1">
+          <div class="trade-buttons">
+            <button id="btn-buy-yes" class="btn btn-yes" disabled>Buy YES</button>
+            <button id="btn-buy-no" class="btn btn-no" disabled>Buy NO</button>
+          </div>
+        </div>
+        <div id="trade-error" class="login-error hidden" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="stats-row">
+          <span>Players: <strong id="stat-players">0</strong></span>
+          <span>Trades: <strong id="stat-trades">0</strong></span>
+        </div>
+      </div>
+
+      <!-- Top 5 Leaderboard -->
+      <div id="top5-card" class="card hidden">
+        <h2>Top 5 Traders (Cumulative)</h2>
+        <table class="trades-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>P/L</th><th>Rounds</th></tr>
+          </thead>
+          <tbody id="top5-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Trade History -->
+      <div id="trade-history" class="card hidden">
+        <h2>Your Trades</h2>
+        <table class="trades-table">
+          <thead>
+            <tr><th>Side</th><th>Spend</th><th>Shares</th><th>Price After</th></tr>
+          </thead>
+          <tbody id="trades-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Price Chart (shown when allowed or after resolution) -->
+      <div id="chart-card" class="card hidden">
+        <h2>Price Chart</h2>
+        <div class="chart-container">
+          <canvas id="price-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Resolution Summary -->
+      <div id="resolution-card" class="card resolution-card hidden">
+        <h2>Round Results</h2>
+        <div id="resolution-outcome" class="resolution-outcome"></div>
+        <div id="resolution-signal-structure" style="font-size:.85rem;color:var(--gray-700);background:rgba(255,255,255,.7);padding:10px;border-radius:var(--radius);margin-bottom:12px;"></div>
+
+        <!-- Information aggregation panel (always shown; especially useful for manipulation scenarios) -->
+        <div id="aggregation-panel" style="background:rgba(255,255,255,.7);padding:12px;border-radius:var(--radius);margin-bottom:12px;border:1px solid #93c5fd;">
+          <div style="font-size:.8rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Information Aggregation</div>
+          <div id="aggregation-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+          <div id="aggregation-note" style="font-size:.78rem;color:var(--gray-600);margin-top:10px;font-style:italic;"></div>
+        </div>
+
+        <div class="resolution-grid">
+          <div class="resolution-item">
+            <div class="label">Final Market Price</div>
+            <div id="res-price" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Bayesian Benchmark</div>
+            <div id="res-benchmark" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Total Trades</div>
+            <div id="res-trades" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Your P/L</div>
+            <div id="res-pl" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Spent on YES</div>
+            <div id="res-yes-spend" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Spent on NO</div>
+            <div id="res-no-spend" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Your Final Value</div>
+            <div id="res-final" class="value"></div>
+          </div>
+          <div class="resolution-item">
+            <div class="label">Cumulative P/L</div>
+            <div id="res-cumulative" class="value"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /player-panel -->
+  </div><!-- /container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+  <script src="/js/chart-manager.js"></script>
+  <script src="/js/student.js"></script>
+</body>
+</html>
